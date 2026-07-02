@@ -66,6 +66,39 @@ body{background:#04070f;color:#c8d8f0;font-family:'Rajdhani',sans-serif;overflow
 .search-item{padding:5px 10px;font-size:.68rem;color:#8aaccc;cursor:pointer;border-bottom:1px solid rgba(100,160,255,0.08)}
 .search-item:hover{background:rgba(60,100,180,0.25);color:#e8f0ff}
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#243650}
+</style><style>
+.tc-wrap{margin-top:4px}
+.tc-field{margin-bottom:6px}
+.tc-field label{display:block;font-family:'Share Tech Mono',monospace;font-size:.54rem;letter-spacing:.12em;color:#4a7ab0;text-transform:uppercase;margin-bottom:2px}
+.tc-sel{width:100%;box-sizing:border-box;background:rgba(6,12,28,0.94);border:1px solid rgba(100,160,255,0.3);color:#c8d8f0;font-family:'Share Tech Mono',monospace;font-size:.62rem;padding:4px 6px;outline:none}
+.tc-sel:focus{border-color:#5a9ef0}
+.tc-toggle{display:flex;align-items:center;gap:7px;margin:5px 0;cursor:pointer;font-size:.68rem;color:#8aaccc}
+.tc-toggle:hover{color:#c8d8f0}
+.tc-box{width:12px;height:12px;border:1px solid #3a6fa0;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:#7eb8ff}
+.tc-toggle.on .tc-box{background:rgba(60,120,220,0.3);border-color:#5a9ef0}
+.tc-btns{display:flex;gap:6px;margin-top:6px}
+.tc-btn{flex:1;background:rgba(60,120,220,0.22);border:1px solid #3a6fa0;color:#c8d8f0;font-family:'Share Tech Mono',monospace;font-size:.62rem;letter-spacing:.08em;padding:5px;cursor:pointer;text-transform:uppercase}
+.tc-btn:hover{background:rgba(60,120,220,0.4);border-color:#5a9ef0}
+.tc-btn2{flex:0 0 32px}
+.tc-out{margin-top:9px;border-top:1px solid rgba(100,160,255,0.15);padding-top:8px}
+.tc-big{font-family:'Share Tech Mono',monospace;font-size:1.0rem;color:#eaf2ff;letter-spacing:.03em}
+.tc-sub{font-size:.64rem;color:#7fa0c4;margin-top:2px}
+.tc-ref{color:#5a7a9a;margin-top:4px}
+.tc-lanes{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.tc-tag{font-size:.56rem;padding:2px 5px;border-radius:2px;font-family:'Share Tech Mono',monospace;color:#02060f;font-weight:600}
+.tc-green{background:#39b54a}.tc-amber{background:#fbb03b}.tc-red{background:#ed1e79;color:#fff}.tc-closed{background:#8fa0b5}
+.tc-warn{font-size:.6rem;color:#f0b45a;margin-top:5px;line-height:1.3}
+.tc-wp{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:.64rem;color:#9fc0e0;padding:3px 6px;border:1px solid rgba(100,160,255,0.12);margin-top:3px;background:rgba(20,40,70,0.25)}
+.tc-x{cursor:pointer;color:#6a86a8;font-family:'Share Tech Mono',monospace;flex-shrink:0}
+.tc-x:hover{color:#ff8a9a}
+.tc-pick-on{background:rgba(70,224,208,0.22)!important;border-color:#46e0d0!important;color:#bffff5!important}
+.tc-mini{font-size:.56rem;color:#5a7a9a;margin-top:6px;cursor:pointer;text-transform:uppercase;letter-spacing:.08em}
+.tc-mini:hover{color:#8ab8e0}
+#viewport.tc-picking{cursor:crosshair}
+.tc-toggle.dis{opacity:.4;cursor:default}
+.tc-clear{display:block;width:100%;box-sizing:border-box;margin-top:8px;background:rgba(190,60,84,0.20);border:1px solid #a84a5c;color:#ffb4c0;font-family:'Share Tech Mono',monospace;font-size:.64rem;letter-spacing:.09em;padding:7px;cursor:pointer;text-transform:uppercase}
+.tc-clear:hover{background:rgba(215,60,84,0.38);border-color:#ff7a90;color:#fff}
+.tc-chain{font-size:.6rem;color:#7fa0c4;margin-top:5px;line-height:1.35;word-break:break-word}
 </style></head><body>
 
 <div id="header">
@@ -2046,6 +2079,7 @@ function applyDoc(doc){
  document.getElementById('doc-title').textContent=titles[doc];
  document.querySelectorAll('.doc-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-doc')===doc));
  closePanel();
+ if(typeof tcAfterDoc==='function')tcAfterDoc(doc);
 }
 
 function mkRow(label,on,onToggle,sub){
@@ -2064,6 +2098,7 @@ function buildLayerPanel(doc){
  if(doc==='trade'){
   const h=document.createElement('h3');h.textContent='Corridor Classes';h.style.marginTop='10px';list.appendChild(h);
   Object.entries(CORRIDOR_SUBS).forEach(([id,lab])=>{setLayer(id,true);list.appendChild(mkRow(lab,true,on=>setLayer(id,on),true));});
+  tcBuildPanel(list);
  }
  if(doc==='stargate'){
   const h=document.createElement('h3');h.textContent='Gate Categories';h.style.marginTop='10px';list.appendChild(h);
@@ -2124,6 +2159,191 @@ si.addEventListener('input',()=>{
  sr.classList.add('visible');
 });
 document.addEventListener('click',e=>{if(!e.target.closest('#search-box'))sr.classList.remove('visible');});
+
+
+/* ===== TRAVEL CALCULATOR (Trade & Travel) ===== */
+const TCD={"LY_PER_PX":42.32,"FTL_SPEED":1000,"NODE":{"229-PD":{"x":1606.19,"y":1072.69,"info":null,"net":true},"236-288":{"x":1674.7,"y":984.92,"info":null,"net":true},"23D-22":{"x":1657.1,"y":935.87,"info":null,"net":true},"36W-55":{"x":1718.53,"y":982.04,"info":null,"net":true},"655-PP":{"x":1533.71,"y":1124.37,"info":null,"net":true},"Atir":{"x":1208.42,"y":911.44,"info":null,"net":true},"Bedrosia":{"x":1165.54,"y":1173.62,"info":"Bedrosia","net":true},"Communa":{"x":1540.83,"y":946.6,"info":"Communa","net":true},"D-41":{"x":1862.86,"y":1154.95,"info":null,"net":true},"D20-22":{"x":1650.23,"y":1196.85,"info":null,"net":true},"D25-6":{"x":1763.38,"y":952.56,"info":null,"net":true},"D36-588":{"x":1485.96,"y":1170.97,"info":null,"net":true},"D3W-21":{"x":1813.96,"y":1247.73,"info":null,"net":true},"D45-114":{"x":1204.95,"y":1140.69,"info":null,"net":true},"D4S-600":{"x":1580.53,"y":1182.59,"info":null,"net":true},"D4X-221":{"x":1499.31,"y":972.78,"info":null,"net":true},"D4X-33W":{"x":1745.65,"y":1216.91,"info":null,"net":true},"D58-611":{"x":1478.25,"y":1012.14,"info":null,"net":true},"D59-66W":{"x":1724.59,"y":1165.43,"info":null,"net":true},"D68-D3W":{"x":1670.66,"y":1034.42,"info":null,"net":true},"DEE-D5":{"x":1854.41,"y":875.18,"info":null,"net":true},"Delta":{"x":1414.4,"y":974.33,"info":"Delta","net":true},"Demma":{"x":1791.44,"y":793.36,"info":"Demma_System","net":true},"Dotrina":{"x":1554.77,"y":1022.19,"info":"Dotrina","net":true},"Dragga":{"x":1421.09,"y":811.96,"info":"Dragga","net":true},"EE-221":{"x":1956.66,"y":1033.56,"info":null,"net":true},"EE-415":{"x":1964.41,"y":1252.43,"info":null,"net":true},"Echo":{"x":1343.29,"y":873.21,"info":"Echo","net":true},"Eskanta":{"x":1256.19,"y":796.1,"info":"Eskanta_System","net":true},"Fang":{"x":1469.22,"y":820.91,"info":"Fang","net":true},"Fia":{"x":1679.74,"y":1266.37,"info":"Fia","net":true},"G-86":{"x":2028.28,"y":1324.0,"info":null,"net":true},"Gamma":{"x":1274.72,"y":1016.27,"info":"Gamma","net":true},"Gori Fleet":{"x":1357.31,"y":706.89,"info":"Gori_Merchant_Fleet","net":true},"Hala":{"x":1341.7,"y":1070.99,"info":"Hala","net":true},"Khaelos-IV":{"x":1432.02,"y":1190.78,"info":null,"net":true},"LV45":{"x":1247.2,"y":868.47,"info":null,"net":true},"LV55":{"x":1289.72,"y":839.54,"info":null,"net":true},"La'Grie":{"x":1323.54,"y":1148.08,"info":"La_Grie","net":true},"Lids":{"x":1735.38,"y":819.62,"info":null,"net":true},"M-62":{"x":1877.86,"y":1232.1,"info":null,"net":true},"M-63":{"x":1784.44,"y":973.52,"info":null,"net":true},"M-661":{"x":1826.48,"y":942.16,"info":null,"net":true},"M-885":{"x":1872.0,"y":1005.38,"info":null,"net":true},"MP-2WD":{"x":1724.59,"y":1031.52,"info":null,"net":true},"Morve Gad":{"x":1670.27,"y":885.09,"info":"Morwe_Gad","net":true},"Oblio":{"x":1395.91,"y":1144.25,"info":"Oblio_System","net":true},"Olga":{"x":1248.19,"y":961.11,"info":"Olga","net":true},"Orbitum System":{"x":1568.9,"y":1147.45,"info":"Orbitum_System","net":true},"P3W-235":{"x":1715.26,"y":1106.22,"info":null,"net":true},"P3W-335":{"x":1830.94,"y":1182.59,"info":null,"net":true},"P56-66X":{"x":1480.22,"y":1075.72,"info":null,"net":true},"P68-333":{"x":1637.22,"y":1096.96,"info":null,"net":true},"PPW-25":{"x":1974.26,"y":1156.78,"info":null,"net":true},"Pattera":{"x":1412.14,"y":1030.78,"info":"Pattera","net":true},"Pol System":{"x":1324.66,"y":967.55,"info":"Pol_System","net":true},"Praetoria":{"x":1573.37,"y":987.03,"info":"Praetoria","net":true},"RRW-315":{"x":1474.22,"y":1124.37,"info":null,"net":true},"Rateen":{"x":1478.83,"y":1235.27,"info":"Rateen","net":true},"S0W-56":{"x":1535.05,"y":1087.7,"info":null,"net":true},"Syl":{"x":1812.5,"y":1057.5,"info":"Syl","net":true},"T.R.A.C.E.":{"x":1350.57,"y":1007.07,"info":"T.R.A.C.E.","net":true},"Tigris-V":{"x":1380.14,"y":1109.25,"info":"Tigris-V","net":true},"Tlio":{"x":1427.01,"y":1072.95,"info":"Tlio_System","net":true},"Traleth":{"x":1288.35,"y":1206.26,"info":"Traleth","net":true},"Vortex Station":{"x":1232.68,"y":1067.63,"info":"Vortex_Station","net":true}},"EXTRA":{"Ytterby-7":{"x":1106.31,"y":1056.31,"info":"Ytterby-7","net":false},"Visian Black Hole":{"x":457.13,"y":1325.85,"info":"Visian_Black_Hole","net":false},"Magellan Void":{"x":849.2,"y":1705.6,"info":"Magellan_Void","net":false},"Lal Nebula":{"x":1461.2,"y":907.3,"info":"Lal_Nebula","net":false},"Zen Supernova":{"x":308.73,"y":606.22,"info":"Zen_Supernova","net":false},"Neutral Safety Zone":{"x":1107.5,"y":1056.31,"info":"Neutral_Safety_Zone","net":false},"Danger Zone":{"x":1108.07,"y":1057.26,"info":"Danger_Zone","net":false},"Nexalabiris-3":{"x":285.0,"y":1057.5,"info":"Nexalabiris-3","net":false},"Valei":{"x":484.92,"y":474.01,"info":"Valei","net":false},"Narnos":{"x":1017.55,"y":840.34,"info":"Narnos","net":false},"Lamös":{"x":1736.47,"y":485.34,"info":"Lamös","net":false},"Entak":{"x":1195.04,"y":1201.44,"info":"Entak","net":false},"K nell":{"x":1244.16,"y":1250.14,"info":"K_nell","net":false},"Kraynos-IV":{"x":1399.74,"y":1255.18,"info":"Kraynos-IV","net":false},"Grace":{"x":1438.08,"y":1295.13,"info":"Grace","net":false},"Noll":{"x":1459.75,"y":1334.95,"info":"Noll","net":false},"Remana":{"x":1387.08,"y":1387.17,"info":"Remana","net":false},"Kraka":{"x":1312.64,"y":1359.88,"info":"Kraka","net":false},"Lena":{"x":1288.35,"y":1282.16,"info":"Lena","net":false},"Adira":{"x":1356.76,"y":1306.76,"info":"Adira","net":false}},"CORR":[["Pol System","T.R.A.C.E.","Green","Fully Charted"],["T.R.A.C.E.","Pattera","Green","Fully Charted"],["T.R.A.C.E.","Gamma","Green","Fully Charted"],["T.R.A.C.E.","Delta","Green","Fully Charted"],["T.R.A.C.E.","Echo","Green","Fully Charted"],["T.R.A.C.E.","Tlio","Green","Fully Charted"],["T.R.A.C.E.","Tigris-V","Green","Fully Charted"],["T.R.A.C.E.","Hala","Green","Fully Charted"],["T.R.A.C.E.","Vortex Station","Green","Fully Charted"],["Gamma","Olga","Green","Fully Charted"],["Gamma","Vortex Station","Green","Fully Charted"],["Vortex Station","Hala","Green","Fully Charted"],["Vortex Station","D45-114","Red","Fully Charted"],["D45-114","Bedrosia","Closed","Mostly Uncharted"],["Hala","La'Grie","Red","Fully Charted"],["Hala","Tigris-V","Green","Fully Charted"],["La'Grie","Traleth","Closed","Mostly Uncharted"],["Tigris-V","Tlio","Green","Fully Charted"],["Tigris-V","Oblio","Red","Fully Charted"],["Oblio","Khaelos-IV","Red","Fully Charted"],["Oblio","D36-588","Amber","Fully Charted"],["Khaelos-IV","Rateen","Closed","Mostly Uncharted"],["D36-588","Orbitum System","Amber","Fully Charted"],["Tlio","RRW-315","Green","Fully Charted"],["Tlio","Pattera","Green","Fully Charted"],["Tlio","P56-66X","Green","Fully Charted"],["RRW-315","655-PP","Green","Fully Charted"],["655-PP","Orbitum System","Green","Fully Charted"],["P56-66X","S0W-56","Green","Fully Charted"],["S0W-56","Orbitum System","Green","Fully Charted"],["S0W-56","Dotrina","Green","Fully Charted"],["S0W-56","229-PD","Green","Fully Charted"],["229-PD","D68-D3W","Green","Fully Charted"],["Pattera","Delta","Green","Fully Charted"],["Delta","D4X-221","Green","Fully Charted"],["Delta","D58-611","Green","Fully Charted"],["Delta","Echo","Green","Fully Charted"],["D4X-221","Communa","Green","Fully Charted"],["D58-611","Dotrina","Green","Fully Charted"],["Communa","Praetoria","Green","Fully Charted"],["Praetoria","Dotrina","Green","Fully Charted"],["Praetoria","D68-D3W","Green","Fully Charted"],["Orbitum System","D4S-600","Red","Fully Charted"],["Orbitum System","P68-333","Amber","Fully Charted"],["D4S-600","D20-22","Red","Fully Charted"],["D20-22","Fia","Closed","Mostly Uncharted"],["Fia","D4X-33W","Closed","Mostly Uncharted"],["P68-333","D68-D3W","Amber","Fully Charted"],["D68-D3W","236-288","Amber","Fully Charted"],["D68-D3W","P3W-235","Amber","Fully Charted"],["D68-D3W","36W-55","Red","Fully Charted"],["D68-D3W","MP-2WD","Amber","Fully Charted"],["P3W-235","D59-66W","Amber","Fully Charted"],["D59-66W","D4X-33W","Amber","Fully Charted"],["D4X-33W","D3W-21","Red","Partially Charted"],["D4X-33W","P3W-335","Red","Partially Charted"],["D3W-21","M-62","Red","Partially Charted"],["M-62","EE-415","Red","Partially Charted"],["EE-415","G-86","Red","Partially Charted"],["P3W-335","D-41","Red","Partially Charted"],["D-41","PPW-25","Red","Partially Charted"],["MP-2WD","Syl","Amber","Fully Charted"],["Syl","M-885","Red","Partially Charted"],["M-885","EE-221","Red","Partially Charted"],["36W-55","D25-6","Red","Partially Charted"],["D25-6","M-63","Red","Partially Charted"],["M-63","M-661","Red","Partially Charted"],["M-661","DEE-D5","Red","Partially Charted"],["236-288","23D-22","Amber","Fully Charted"],["23D-22","Morve Gad","Amber","Fully Charted"],["Morve Gad","Lids","Amber","Fully Charted"],["Lids","Demma","Amber","Fully Charted"],["Olga","Echo","Green","Fully Charted"],["Olga","Atir","Amber","Fully Charted"],["Atir","LV45","Amber","Fully Charted"],["LV45","LV55","Amber","Fully Charted"],["LV55","Echo","Amber","Fully Charted"],["LV55","Eskanta","Amber","Fully Charted"],["Echo","Dragga","Amber","Fully Charted"],["Dragga","Fang","Amber","Fully Charted"],["Dragga","Gori Fleet","Amber","Fully Charted"]]};
+const TC_PLACES=Object.assign({},TCD.NODE,TCD.EXTRA);
+const TC_LYPX=TCD.LY_PER_PX;
+const TC_LANE_SPEED={Green:2000,Amber:900,Red:330,Closed:165}; // ly/day inside corridors — Pol->TRACE=1d (Green), Pol->Traleth=30d
+const TC_UNCH_MAX=800;  // ly/day: uncharted-space speed of a perfect navigator; actual = TC_UNCH_MAX * core factor
+const TC_SNAP_NODE=45, TC_SNAP_LANE=70;  // px: 'controlled space' reach — snap to a system / corridor within this range
+const TC_LANECOLOR={Green:'#39b54a',Amber:'#fbb03b',Red:'#ed1e79',Closed:'#8fa0b5'};
+const TC_FREECOLOR='#46e0d0';
+
+/* ---- Vessel model (edit freely — you'll wire a full ship roster later) ----
+   Selection is by COMPUTER CORE (mk1..mk10). Exploration vessels add navigation tech.
+   Charted corridor speed = TC_SPEED. Uncharted (off-corridor) speed = charted * factor(core). */
+const TC_CORE_MIN=1, TC_CORE_MAX=10;
+function tcUnch(core,expl){var f=0.15+(core-1)*(0.55/9); if(expl)f+=0.25; return Math.max(0.10,Math.min(0.95,f));} // uncharted speed factor
+function tcCanClosed(core,expl){return expl||core>=8;}   // Closed-lane (military) transit
+/* exploration vessels boost uncharted navigation + grant Closed access; corridor speed is set by lane class */
+let tcCore=5, tcExpl=false;
+
+let tcStops=[{kind:'place',key:'Pol System'},{kind:'place',key:'Praetoria'}];
+let tcOpt={corr:true,mil:false};
+let tcPick=false, tcPtCounter=0, tcLastRes=null;
+const tcRoute=document.createElementNS(NS,'g');tcRoute.setAttribute('id','tl-route');tcRoute.setAttribute('pointer-events','none');svg.appendChild(tcRoute);
+
+function tcD(a,b){return Math.hypot(a.x-b.x,a.y-b.y)*TC_LYPX;}
+function tcFmtLy(ly){return Math.round(ly).toLocaleString()+' ly';}
+function tcDays(d){var wd=Math.floor(d),hh=Math.round((d-wd)*24);if(hh===24){wd+=1;hh=0;}return d.toFixed(1)+' d ('+wd+'d '+hh+'h)';}
+
+function tcGraph(mil){var g={};TCD.CORR.forEach(function(e){var f=e[0],t=e[1],lane=e[2];if(lane==='Closed'&&!mil)return;var a=TC_PLACES[f],b=TC_PLACES[t];if(!a||!b)return;var w=tcD(a,b);(g[f]=g[f]||[]).push({to:t,w:w,type:'corr',lane:lane});(g[t]=g[t]||[]).push({to:f,w:w,type:'corr',lane:lane});});return g;}
+function tcNearestPlace(pt,rad){var best=null,bd=rad;for(var k in TC_PLACES){var p=TC_PLACES[k];var d=Math.hypot(pt.x-p.x,pt.y-p.y);if(d<bd){bd=d;best=k;}}return best;}
+function tcSegDist(px,py,ax,ay,bx,by){var dx=bx-ax,dy=by-ay,L=dx*dx+dy*dy;if(L===0)return Math.hypot(px-ax,py-ay);var t=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/L));return Math.hypot(px-(ax+t*dx),py-(ay+t*dy));}
+function tcSnap(pt){var bn=null,bnd=1e18;for(var k in TCD.NODE){var p=TCD.NODE[k];var dd=Math.hypot(pt.x-p.x,pt.y-p.y);if(dd<bnd){bnd=dd;bn=k;}}if(bnd<=TC_SNAP_NODE)return bn;var bld=1e18;for(var i=0;i<TCD.CORR.length;i++){var f=TC_PLACES[TCD.CORR[i][0]],t=TC_PLACES[TCD.CORR[i][1]];if(!f||!t)continue;var ds=tcSegDist(pt.x,pt.y,f.x,f.y,t.x,t.y);if(ds<bld)bld=ds;}return bld<=TC_SNAP_LANE?bn:null;}
+function tcDij(adj,s,t){
+  if(!adj[s]||!adj[t])return null;
+  var dist={},prev={},vis={};dist[s]=0;var pq=[[0,s]];
+  while(pq.length){pq.sort(function(a,b){return a[0]-b[0];});var top=pq.shift(),du=top[0],u=top[1];if(vis[u])continue;vis[u]=1;if(u===t)break;(adj[u]||[]).forEach(function(e){var nd=du+e.w;if(dist[e.to]===undefined||nd<dist[e.to]){dist[e.to]=nd;prev[e.to]={n:u,lane:e.lane};pq.push([nd,e.to]);}});}
+  if(dist[t]===undefined)return null;
+  var seq=[t],lanes=[],c=t;while(prev[c]){lanes.unshift(prev[c].lane);seq.unshift(prev[c].n);c=prev[c].n;}
+  return {seq:seq,lanes:lanes,ly:dist[t]};
+}
+function tcResolve(s){if(s.kind==='place'){var p=TC_PLACES[s.key];return {x:p.x,y:p.y,label:s.key,key:s.key,net:!!(TCD.NODE[s.key]),custom:false};}return {x:s.x,y:s.y,label:s.label,key:null,net:false,custom:true};}
+function tcChain(){return tcStops.map(tcResolve);}
+function tcMainSet(g){var seen={},best=[];for(var n in g){if(seen[n])continue;var st=[n],c=[];while(st.length){var u=st.pop();if(seen[u])continue;seen[u]=1;c.push(u);(g[u]||[]).forEach(function(e){if(!seen[e.to])st.push(e.to);});}if(c.length>best.length)best=c;}var set={};best.forEach(function(k){set[k]=1;});return set;}
+function tcNearestMain(pt,mainSet){var bn=null,bd=1e18;for(var k in mainSet){var p=TC_PLACES[k];var dd=Math.hypot(pt.x-p.x,pt.y-p.y);if(dd<bd){bd=dd;bn=k;}}return bn;}
+
+function tcPlan(){
+  var chain=tcChain();
+  if(chain.length<2)return {stops:chain,legs:[],totalLy:0,totalDays:0,mode:'need',warn:[],direct:0};
+  var uncF=tcUnch(tcCore,tcExpl);
+  var unchSpeed=TC_UNCH_MAX*uncF;
+  var closedAllowed=tcOpt.mil&&tcCanClosed(tcCore,tcExpl);
+  var res={stops:chain,legs:[],totalLy:0,totalDays:0,lanecount:{Green:0,Amber:0,Red:0,Closed:0},warn:[],direct:0,pathNodes:[],mode:tcOpt.corr?'corr':'free'};
+  for(var i=0;i<chain.length-1;i++)res.direct+=tcD(chain[i],chain[i+1]);
+  var g=tcOpt.corr?tcGraph(closedAllowed):null;
+  var mainSet=g?tcMainSet(g):{};
+  function addFree(A,B){var ly=tcD(A,B);res.legs.push({type:'free',a:A,b:B,ly:ly});res.totalLy+=ly;res.totalDays+=ly/unchSpeed;}
+  function addCorr(a,b,lane){var ly=tcD(a,b);res.legs.push({type:'corr',a:a,b:b,lane:lane,ly:ly});res.totalLy+=ly;res.totalDays+=ly/(TC_LANE_SPEED[lane]||TC_LANE_SPEED.Green);res.lanecount[lane]=(res.lanecount[lane]||0)+1;}
+  for(var i=0;i<chain.length-1;i++){
+    var A=chain[i],B=chain[i+1];
+    // Free drawing, or any leg touching a hand-placed open-space point -> direct uncharted.
+    if(!tcOpt.corr||A.custom||B.custom){addFree(A,B);continue;}
+    // Both endpoints are named systems: ride the corridor network through charted space,
+    // anchoring a frontier/off-network system to its nearest lane node via an uncharted approach hop.
+    var anchorA=(A.key&&g[A.key])?A.key:tcNearestMain(A,mainSet);
+    var anchorB=(B.key&&g[B.key])?B.key:tcNearestMain(B,mainSet);
+    var dj=(anchorA&&anchorB)?tcDij(g,anchorA,anchorB):null;
+    if(!dj){addFree(A,B);continue;}
+    if(A.key!==anchorA)addFree(A,TC_PLACES[anchorA]);
+    for(var e=0;e<dj.seq.length-1;e++){addCorr(TC_PLACES[dj.seq[e]],TC_PLACES[dj.seq[e+1]],dj.lanes[e]);}
+    dj.seq.forEach(function(n){res.pathNodes.push(n);});
+    if(B.key!==anchorB)addFree(TC_PLACES[anchorB],B);
+  }
+  if(res.lanecount.Closed)res.warn.push(res.lanecount.Closed+' Closed lane(s) \u00b7 military transit');
+  if(res.lanecount.Amber||res.lanecount.Red)res.warn.push((res.lanecount.Amber+res.lanecount.Red)+' caution lane(s) (Amber/Red)');
+  if(res.legs.some(function(l){return l.type==='free';}))res.warn.push('Off-corridor legs \u2014 uncharted space \u00b7 '+Math.round(unchSpeed)+' ly/day');
+  if(tcOpt.mil&&!tcCanClosed(tcCore,tcExpl))res.warn.push('Core mk'+tcCore+' cannot transit Closed lanes (needs mk8+ or exploration vessel)');
+  return res;
+}
+
+function tcClearRoute(){while(tcRoute.firstChild)tcRoute.removeChild(tcRoute.firstChild);}
+function tcLine(a,b,color,dash,w,op){var l=document.createElementNS(NS,'line');l.setAttribute('x1',a.x);l.setAttribute('y1',a.y);l.setAttribute('x2',b.x);l.setAttribute('y2',b.y);l.setAttribute('stroke',color);l.setAttribute('stroke-width',w);l.setAttribute('stroke-linecap','round');if(dash)l.setAttribute('stroke-dasharray','10 8');l.setAttribute('opacity',op);return l;}
+function tcDot(p,color,r){var c=document.createElementNS(NS,'circle');c.setAttribute('cx',p.x);c.setAttribute('cy',p.y);c.setAttribute('r',r);c.setAttribute('fill',color);c.setAttribute('stroke','#02060f');c.setAttribute('stroke-width',1.5);return c;}
+function tcDiamond(p,color,r){var d=document.createElementNS(NS,'path');var x=p.x,y=p.y;d.setAttribute('d','M'+x+' '+(y-r)+'L'+(x+r)+' '+y+'L'+x+' '+(y+r)+'L'+(x-r)+' '+y+'Z');d.setAttribute('fill',color);d.setAttribute('stroke','#02060f');d.setAttribute('stroke-width',1.5);return d;}
+function tcLabel(p,txt,color){var t=document.createElementNS(NS,'text');t.setAttribute('x',p.x+9);t.setAttribute('y',p.y-9);t.setAttribute('fill',color);t.setAttribute('font-family',"'Share Tech Mono',monospace");t.setAttribute('font-size','13');t.setAttribute('stroke','#02060f');t.setAttribute('stroke-width','0.7');t.setAttribute('paint-order','stroke');t.textContent=txt;return t;}
+function tcDrawRoute(res){
+  tcClearRoute();if(!res)return;
+  res.legs.forEach(function(leg){var col=leg.type==='free'?TC_FREECOLOR:(TC_LANECOLOR[leg.lane]||'#5a9ef0');tcRoute.appendChild(tcLine(leg.a,leg.b,col,false,9,0.16));});
+  res.legs.forEach(function(leg){var col=leg.type==='free'?TC_FREECOLOR:(TC_LANECOLOR[leg.lane]||'#5a9ef0');tcRoute.appendChild(tcLine(leg.a,leg.b,col,leg.type==='free',3.6,0.95));});
+  (res.pathNodes||[]).forEach(function(n){var p=TC_PLACES[n];if(p)tcRoute.appendChild(tcDot(p,'#0a1830',3.4));});
+  var st=res.stops||[];
+  st.forEach(function(s,i){
+    if(i===0){tcRoute.appendChild(tcDot(s,'#39b54a',6));tcRoute.appendChild(tcLabel(s,s.label,'#c8ffd0'));}
+    else if(i===st.length-1){tcRoute.appendChild(tcDot(s,'#ff5a7a',6));tcRoute.appendChild(tcLabel(s,s.label,'#ffd0d8'));}
+    else{tcRoute.appendChild(tcDiamond(s,'#fbb03b',6));tcRoute.appendChild(tcLabel(s,i+'\u00b7 '+s.label,'#ffe0a0'));}
+  });
+}
+function tcFocus(res){if(!res||!res.legs.length)return;var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;res.legs.forEach(function(l){[l.a,l.b].forEach(function(p){minx=Math.min(minx,p.x);miny=Math.min(miny,p.y);maxx=Math.max(maxx,p.x);maxy=Math.max(maxy,p.y);});});var pad=140;minx-=pad;miny-=pad;maxx+=pad;maxy+=pad;var vw=viewport.clientWidth,vh=viewport.clientHeight,bw=maxx-minx,bh=maxy-miny;scale=Math.min(maxScale,Math.max(minScale,Math.min(vw/bw,vh/bh)));panX=vw/2-((minx+maxx)/2)*scale;panY=vh/2-((miny+maxy)/2)*scale;applyT();}
+function tcReadout(res){
+  if(!res)return '';
+  if(res.mode==='need')return '<div class="tc-big">\u2014</div><div class="tc-sub">Set a start (dropdown) or click the map to begin the path.</div>';
+  var modeLabel=res.mode==='free'?'Free drawing \u00b7 uncharted space':'Snap to network \u00b7 free beyond the frontier';
+  var stops=res.stops||[],uncF=tcUnch(tcCore,tcExpl);
+  var h='<div class="tc-big">'+tcDays(res.totalDays)+'</div>';
+  h+='<div class="tc-sub">'+tcFmtLy(res.totalLy)+' \u00b7 '+modeLabel+' \u00b7 '+stops.length+' stops</div>';
+  var unchSpeed=TC_UNCH_MAX*uncF;h+='<div class="tc-sub tc-ref">Computer core mk'+tcCore+(tcExpl?' \u00b7 exploration vessel':'')+' \u00b7 uncharted '+Math.round(unchSpeed)+' ly/day</div>';
+  if(res.mode==='corr'){var lc=res.lanecount||{},parts=[];['Green','Amber','Red','Closed'].forEach(function(k){if(lc[k])parts.push('<span class="tc-tag tc-'+k.toLowerCase()+'">'+lc[k]+' '+k+'</span>');});if(parts.length)h+='<div class="tc-lanes">'+parts.join('')+'</div>';}
+  h+='<div class="tc-chain">'+stops.map(function(s){return s.label;}).join(' \u2192 ')+'</div>';
+  (res.warn||[]).forEach(function(w){h+='<div class="tc-warn">\u26a0 '+w+'</div>';});
+  return h;
+}
+function tcRender(focus){var res=tcPlan();tcLastRes=res;tcDrawRoute(res);var out=document.getElementById('tc-out');if(out)out.innerHTML=tcReadout(res);if(focus)tcFocus(res);}
+
+/* --- map picking: append to end (first click seeds start if empty) --- */
+function tcToSvg(cx,cy){var pt=svg.createSVGPoint();pt.x=cx;pt.y=cy;var m=svg.getScreenCTM();if(!m)return null;var p=pt.matrixTransform(m.inverse());return {x:p.x,y:p.y};}
+function tcClickAdd(ev){
+  if(!tcPick||moved)return;var pt=tcToSvg(ev.clientX,ev.clientY);if(!pt)return;ev.stopPropagation();
+  var snapKey=tcOpt.corr?tcSnap(pt):null;   // snap only in 'snap to network' mode, and only inside controlled space
+  var last=tcStops[tcStops.length-1];
+  if(snapKey&&last&&last.kind==='place'&&last.key===snapKey)return;   // skip duplicate consecutive system
+  var stop=snapKey?{kind:'place',key:snapKey}:{kind:'point',x:Math.round(pt.x*100)/100,y:Math.round(pt.y*100)/100,label:'Pt'+(++tcPtCounter)};
+  tcStops.push(stop);tcRenderStops();tcSyncStart();tcRender(false);
+}
+svg.addEventListener('click',tcClickAdd,true);
+function tcSetPick(on){tcPick=on;viewport.classList.toggle('tc-picking',on);var b=document.getElementById('tc-pick');if(b){b.classList.toggle('tc-pick-on',on);b.textContent=on?'\u25cf Click map to extend \u2014 done':'\uff0b Build path on map';}if(on){hint.textContent=(tcOpt.corr?'CLICK TO EXTEND \u00b7 SNAPS IN CHARTED SPACE, FREE BEYOND':'CLICK TO EXTEND \u00b7 FREE DRAWING (UNCHARTED)')+' \u00b7 ESC TO FINISH';hint.style.opacity='1';}else{hint.style.opacity='0';}}
+window.addEventListener('keydown',function(e){if(e.key==='Escape'&&tcPick)tcSetPick(false);});
+function tcSyncStart(){var s=document.getElementById('tc-start');if(s)s.value=(tcStops[0]&&tcStops[0].kind==='place')?tcStops[0].key:'';}
+
+function tcRenderStops(){
+  var box=document.getElementById('tc-stoplist');if(!box)return;box.innerHTML='';
+  tcStops.forEach(function(s,i){
+    var row=document.createElement('div');row.className='tc-wp';
+    var role=(i===0)?'\u25c9 start':(i===tcStops.length-1?'\u25ce end':'\u25c7 stop');
+    var lab=(s.kind==='place')?s.key:s.label;
+    var name=document.createElement('span');name.innerHTML='<b style="color:#5a7a9a;font-weight:400">'+role+'</b> '+lab;row.appendChild(name);
+    var x=document.createElement('span');x.className='tc-x';x.textContent='\u2715';x.onclick=function(){tcStops.splice(i,1);tcRenderStops();tcSyncStart();tcRender(false);};row.appendChild(x);
+    box.appendChild(row);
+  });
+}
+function tcToggle(label,on,cb,dis){var row=document.createElement('div');row.className='tc-toggle'+(on?' on':'')+(dis?' dis':'');row.innerHTML='<div class="tc-box">'+(on&&!dis?'\u2713':'')+'</div><span>'+label+'</span>';row.onclick=function(){if(dis)return;var now=!row.classList.contains('on');row.classList.toggle('on',now);row.querySelector('.tc-box').textContent=now?'\u2713':'';cb(now);};return row;}
+function tcBuildPanel(list){
+  var h=document.createElement('h3');h.textContent='Travel Calculator';h.style.marginTop='12px';list.appendChild(h);
+  var keys=Object.keys(TC_PLACES).sort(function(a,b){return a.localeCompare(b);});
+  var wrap=document.createElement('div');wrap.className='tc-wrap';
+  // computer core
+  var rowC=document.createElement('div');rowC.className='tc-field';rowC.innerHTML='<label>Computer core</label>';
+  var cc=document.createElement('select');cc.className='tc-sel';cc.id='tc-core';
+  for(var m=TC_CORE_MIN;m<=TC_CORE_MAX;m++){var o=document.createElement('option');o.value=m;o.textContent='mk'+m;if(m===tcCore)o.selected=true;cc.appendChild(o);}
+  cc.onchange=function(){tcCore=parseInt(cc.value,10);buildLayerPanel('trade');};
+  rowC.appendChild(cc);wrap.appendChild(rowC);
+  // exploration vessel
+  wrap.appendChild(tcToggle('Exploration vessel',tcExpl,function(v){tcExpl=v;buildLayerPanel('trade');}));
+  // start
+  var rowS=document.createElement('div');rowS.className='tc-field';rowS.innerHTML='<label>Start</label>';
+  var ss=document.createElement('select');ss.className='tc-sel';ss.id='tc-start';var sph=document.createElement('option');sph.value='';sph.textContent='\u2014 set start \u2014';ss.appendChild(sph);
+  keys.forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=(TCD.NODE[k]?'':'\u00b7 ')+k;if(tcStops[0]&&tcStops[0].kind==='place'&&tcStops[0].key===k)o.selected=true;ss.appendChild(o);});
+  ss.onchange=function(){if(!ss.value)return;if(tcStops.length===0)tcStops=[{kind:'place',key:ss.value}];else tcStops[0]={kind:'place',key:ss.value};tcRenderStops();tcRender(false);};
+  rowS.appendChild(ss);wrap.appendChild(rowS);
+  // add stop
+  var rowA=document.createElement('div');rowA.className='tc-field';rowA.innerHTML='<label>Add stop (append)</label>';
+  var sa=document.createElement('select');sa.className='tc-sel';sa.id='tc-add';var ph=document.createElement('option');ph.value='';ph.textContent='\uff0b add a system\u2026';sa.appendChild(ph);
+  keys.forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=(TCD.NODE[k]?'':'\u00b7 ')+k;sa.appendChild(o);});
+  sa.onchange=function(){if(sa.value){tcStops.push({kind:'place',key:sa.value});sa.value='';tcRenderStops();tcSyncStart();tcRender(false);}};
+  rowA.appendChild(sa);wrap.appendChild(rowA);
+  // build on map
+  var pickBtn=document.createElement('button');pickBtn.className='tc-btn';pickBtn.id='tc-pick';pickBtn.style.width='100%';pickBtn.style.marginTop='4px';pickBtn.textContent=tcPick?'\u25cf Click map to extend \u2014 done':'\uff0b Build path on map';if(tcPick)pickBtn.classList.add('tc-pick-on');pickBtn.onclick=function(){tcSetPick(!tcPick);};wrap.appendChild(pickBtn);
+  var sl=document.createElement('div');sl.id='tc-stoplist';sl.style.marginTop='4px';wrap.appendChild(sl);
+  // clear (prominent)
+  var bclr=document.createElement('button');bclr.className='tc-clear';bclr.textContent='\u2715 Clear all points';bclr.onclick=function(){tcStops=[];tcSetPick(false);tcRenderStops();tcSyncStart();tcRender(false);};wrap.appendChild(bclr);
+  // toggles
+  wrap.appendChild(tcToggle('Snap to corridors/systems',tcOpt.corr,function(v){tcOpt.corr=v;tcSetPick(tcPick);tcRender(false);}));
+  var canClosed=tcCanClosed(tcCore,tcExpl);
+  wrap.appendChild(tcToggle('Use Closed lanes (military)',tcOpt.mil&&canClosed,function(v){tcOpt.mil=v;tcRender(false);},!canClosed));
+  // buttons
+  var btns=document.createElement('div');btns.className='tc-btns';
+  var bplot=document.createElement('button');bplot.className='tc-btn';bplot.textContent='Plot course';bplot.onclick=function(){tcRender(true);};
+  var brev=document.createElement('button');brev.className='tc-btn tc-btn2';brev.textContent='\u21c4';brev.title='Reverse path';brev.onclick=function(){tcStops.reverse();tcRenderStops();tcSyncStart();tcRender(false);};
+  btns.appendChild(bplot);btns.appendChild(brev);wrap.appendChild(btns);
+  var out=document.createElement('div');out.className='tc-out';out.id='tc-out';wrap.appendChild(out);
+  list.appendChild(wrap);
+  tcRenderStops();tcRender(false);
+}
+function tcAfterDoc(doc){if(doc!=='trade'){tcClearRoute();tcSetPick(false);}}
+/* ===== END TRAVEL CALCULATOR ===== */
 
 // init
 setupSectors();
